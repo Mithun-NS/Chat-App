@@ -19,16 +19,27 @@ export const AuthProvider = ({ children })=>{
     // Check if user is authenticated and if so, set the user data and connect the socket
 
     const checkAuth = async () => {
-        try {
-           const { data } = await axios.get("/api/auth/check")
-           if(data.success){
-            setAuthUser(data.user)
-            connectSocket(data.user)
-           }
-        } catch (error) {
-            toast.error(error.message)
+    try {
+        const token = localStorage.getItem("token"); // or sessionStorage
+
+        if (!token) return; // Skip if no token is found
+
+        const { data } = await axios.get("/api/auth/check", {
+            headers: {
+                token: token  // 🔥 this matches your backend middleware
+            }
+        });
+
+        if (data.success) {
+            setAuthUser(data.user);
+            connectSocket(data.user);
         }
+    } catch (error) {
+        toast.error(error.response?.data?.message || error.message);
+        console.log("Auth Check Error:", error.message);
     }
+};
+
 
     // Login func to handle user auth and scoket connection
 
